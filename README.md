@@ -1,4 +1,8 @@
-This repository serves a single purpose: to provide source code files for readers of the Meshtastic guideline, allowing them to compile custom firmware for their devices. It includes two simple examples of firmware modifications:
+This repository serves a single purpose: to provide source code files for readers of the Meshtastic guideline, allowing them to compile custom firmware for their devices. 
+
+see https://meshtastic-czbrno.blogspot.com/2025/02/meshtastic-kompilace-vlastniho-firmware.html
+
+It includes two simple examples of firmware modifications:
 
 SignalReplyModule – A new, lightweight module that listens for incoming messages containing the text "Ping." Upon receiving such a message, the device retrieves its RSSI/SNR values and sends them back to the sender. This feature helps users assess signal quality between nodes and general network coverage.
 
