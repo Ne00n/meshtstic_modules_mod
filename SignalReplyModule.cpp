@@ -5,6 +5,19 @@
 
 SignalReplyModule *signalReplyModule;
 
+// Custom implementation of strcasestr by "liquidraver"
+const char* strcasestr_custom(const char* haystack, const char* needle) {
+    if (!haystack || !needle) return nullptr;
+    size_t needle_len = strlen(needle);
+    if (!needle_len) return haystack;
+    for (; *haystack; ++haystack) {
+        if (strncasecmp(haystack, needle, needle_len) == 0) {
+            return haystack;
+        }
+    }
+    return nullptr;
+}
+
 ProcessMessage SignalReplyModule::handleReceived(const meshtastic_MeshPacket &currentRequest)
 {
     auto &p = currentRequest.decoded;
@@ -15,9 +28,12 @@ ProcessMessage SignalReplyModule::handleReceived(const meshtastic_MeshPacket &cu
     }
     messageRequest[p.payload.size] = '\0';
 
-    //Received text msg from=0x0, id=0xf50fd53d, msg=Ping
-    if ((strcasestr(messageRequest, const_cast<char *>("ping")) == 0 ||
-         strcasestr(messageRequest, const_cast<char *>("seq ")) == 0) &&
+    //This condition is meant to reply to message containing request "ping" or
+    //range module message sending mesage in "seq"uence - e.g. seq 1, seq 2, seq 3.... etc
+    //in such case this module sends back information about sgnal quality as well.
+    //If not interested in replies to RangeModule semove "seq" condition
+
+    if ( ( (strcasestr_custom(messageRequest, "ping")) != nullptr ||  (strcasestr_custom(messageRequest, "seq ")) != nullptr ) &&   //fix 2025-03-06 (liquidraver & Brabrouk)
          currentRequest.from != 0x0 &&  //fix 2025-05-08
          currentRequest.from != nodeDB->getNodeNum())
     {
