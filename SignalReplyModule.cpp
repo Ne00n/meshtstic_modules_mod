@@ -47,15 +47,15 @@ ProcessMessage SignalReplyModule::handleReceived(const meshtastic_MeshPacket &cu
             int hopStart = currentRequest.hop_start;
 
             char idSender[10];
-            char idReceipient[10];
+            char idRecipient[10];
             snprintf(idSender, sizeof(idSender), "%d", currentRequest.from);
-            snprintf(idReceipient, sizeof(idReceipient), "%d", nodeDB->getNodeNum());
+            snprintf(idRecipient, sizeof(idRecipient), "%d", nodeDB->getNodeNum());
 
             char messageReply[250];
             meshtastic_NodeInfoLite *nodeSender = nodeDB->getMeshNode(currentRequest.from);
             const char *username = nodeSender->has_user ? nodeSender->user.short_name : idSender;
             meshtastic_NodeInfoLite *nodeReceiver = nodeDB->getMeshNode(nodeDB->getNodeNum());
-            const char *usernameja = nodeReceiver->has_user ? nodeReceiver->user.short_name : idReceipient;
+            const char *usernameja = nodeReceiver->has_user ? nodeReceiver->user.short_name : idRecipient;
 
             LOG_ERROR("SignalReplyModule::handleReceived(): '%s' from %s.", messageRequest, username);
 
