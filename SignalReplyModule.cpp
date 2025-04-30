@@ -2,6 +2,8 @@
 #include "MeshService.h"
 #include "configuration.h"
 #include "main.h"
+#include <unordered_map>
+#include <chrono>
 
 SignalReplyModule *signalReplyModule;
 
@@ -18,6 +20,10 @@ const char* strcasestr_custom(const char* haystack, const char* needle) {
     return nullptr;
 }
 
+// Store the last reply time for each sender node
+std::unordered_map<uint32_t, std::chrono::steady_clock::time_point> lastReplyTime;
+const std::chrono::seconds replyCooldown(30); // Define the cooldown period
+
 ProcessMessage SignalReplyModule::handleReceived(const meshtastic_MeshPacket &currentRequest)
 {
     auto &p = currentRequest.decoded;
@@ -28,54 +34,57 @@ ProcessMessage SignalReplyModule::handleReceived(const meshtastic_MeshPacket &cu
     }
     messageRequest[p.payload.size] = '\0';
 
-    //This condition is meant to reply to message containing request "ping" or
-    //range module message sending mesage in "seq"uence - e.g. seq 1, seq 2, seq 3.... etc
-    //in such case this module sends back information about sgnal quality as well.
-    //If not interested in replies to RangeModule semove "seq" condition
-
     if ( ( (strcasestr_custom(messageRequest, "ping")) != nullptr ||  (strcasestr_custom(messageRequest, "seq ")) != nullptr ) &&   //fix 2025-03-06 (liquidraver & Brabrouk)
          currentRequest.from != 0x0 &&  //fix 2025-05-08
          currentRequest.from != nodeDB->getNodeNum())
     {
-        int hopLimit = currentRequest.hop_limit;
-        int hopStart = currentRequest.hop_start;
-
-        char idSender[10];
-        char idReceipient[10];
-        snprintf(idSender, sizeof(idSender), "%d", currentRequest.from);
-        snprintf(idReceipient, sizeof(idReceipient), "%d", nodeDB->getNodeNum());
-
-        char messageReply[250];
-        meshtastic_NodeInfoLite *nodeSender = nodeDB->getMeshNode(currentRequest.from);
-        const char *username = nodeSender->has_user ? nodeSender->user.short_name : idSender;
-        meshtastic_NodeInfoLite *nodeReceiver = nodeDB->getMeshNode(nodeDB->getNodeNum());
-        const char *usernameja = nodeReceiver->has_user ? nodeReceiver->user.short_name : idReceipient;
-
-        LOG_ERROR("SignalReplyModule::handleReceived(): '%s' from %s.", messageRequest, username);
-
-        if (hopLimit != hopStart)
+        auto now = std::chrono::steady_clock::now();
+        if (lastReplyTime.find(currentRequest.from) == lastReplyTime.end() || (now - lastReplyTime[currentRequest.from]) >= replyCooldown)
         {
-            snprintf(messageReply, sizeof(messageReply), "%s: RSSI/SNR cannot be determined due to indirect connection through %d nodes!", username, (hopLimit - hopStart));
-        }
-        else
-        {
-            snprintf(messageReply, sizeof(messageReply), "Request '%s'->'%s' : RSSI %d dBm, SNR %.1f dB (@%s).", username, usernameja, currentRequest.rx_rssi, currentRequest.rx_snr, usernameja);
-        }
+            lastReplyTime[currentRequest.from] = now; // Update the last reply time
 
-        auto reply = allocDataPacket();
-        reply->decoded.portnum = meshtastic_PortNum_TEXT_MESSAGE_APP;
-        reply->decoded.payload.size = strlen(messageReply);
-        reply->from = getFrom(&currentRequest);
-        reply->to = currentRequest.from;
-        reply->channel = currentRequest.channel;
-        reply->want_ack = (currentRequest.from != 0) ? currentRequest.want_ack : false;
-        if (currentRequest.priority == meshtastic_MeshPacket_Priority_UNSET)
-        {
-            reply->priority = meshtastic_MeshPacket_Priority_RELIABLE;
+            int hopLimit = currentRequest.hop_limit;
+            int hopStart = currentRequest.hop_start;
+
+            char idSender[10];
+            char idReceipient[10];
+            snprintf(idSender, sizeof(idSender), "%d", currentRequest.from);
+            snprintf(idReceipient, sizeof(idReceipient), "%d", nodeDB->getNodeNum());
+
+            char messageReply[250];
+            meshtastic_NodeInfoLite *nodeSender = nodeDB->getMeshNode(currentRequest.from);
+            const char *username = nodeSender->has_user ? nodeSender->user.short_name : idSender;
+            meshtastic_NodeInfoLite *nodeReceiver = nodeDB->getMeshNode(nodeDB->getNodeNum());
+            const char *usernameja = nodeReceiver->has_user ? nodeReceiver->user.short_name : idReceipient;
+
+            LOG_ERROR("SignalReplyModule::handleReceived(): '%s' from %s.", messageRequest, username);
+
+            if (hopLimit != hopStart)
+            {
+                snprintf(messageReply, sizeof(messageReply), "%s: RSSI/SNR cannot be determined due to indirect connection through %d nodes!", username, (hopLimit - hopStart));
+            }
+            else
+            {
+                snprintf(messageReply, sizeof(messageReply), "Request '%s'->'%s' : RSSI %d dBm, SNR %.1f dB (@%s).", username, usernameja, currentRequest.rx_rssi, currentRequest.rx_snr, usernameja);
+            }
+
+            auto reply = allocDataPacket();
+            reply->decoded.portnum = meshtastic_PortNum_TEXT_MESSAGE_APP;
+            reply->decoded.payload.size = strlen(messageReply);
+            reply->from = getFrom(&currentRequest);
+            reply->to = currentRequest.from;
+            reply->channel = currentRequest.channel;
+            reply->want_ack = (currentRequest.from != 0) ? currentRequest.want_ack : false;
+            if (currentRequest.priority == meshtastic_MeshPacket_Priority_UNSET)
+            {
+                reply->priority = meshtastic_MeshPacket_Priority_RELIABLE;
+            }
+            reply->id = generatePacketId();
+            memcpy(reply->decoded.payload.bytes, messageReply, reply->decoded.payload.size);
+            service->handleToRadio(*reply);
+        } else {
+            LOG_DEBUG("SignalReplyModule::handleReceived(): Cooldown active for sender %d.", currentRequest.from);
         }
-        reply->id = generatePacketId();
-        memcpy(reply->decoded.payload.bytes, messageReply, reply->decoded.payload.size);
-        service->handleToRadio(*reply);
     }
     notifyObservers(&currentRequest);
     return ProcessMessage::CONTINUE;
