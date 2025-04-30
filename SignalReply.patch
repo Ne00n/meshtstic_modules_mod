@@ -1,0 +1,20 @@
+diff --git a/src/modules/Modules.cpp b/src/modules/Modules.cpp
+index 1f2b50057..20ebc90c5 100644
+--- a/src/modules/Modules.cpp
++++ b/src/modules/Modules.cpp
+@@ -7,6 +7,7 @@
+ #include "input/SerialKeyboardImpl.h"
+ #include "input/TrackballInterruptImpl1.h"
+ #include "input/UpDownInterruptImpl1.h"
++#include "SignalReplyModule.h"
+ #if !MESHTASTIC_EXCLUDE_I2C
+ #include "input/cardKbI2cImpl.h"
+ #endif
+@@ -142,6 +143,7 @@ void setupModules()
+         // Note: if the rest of meshtastic doesn't need to explicitly use your module, you do not need to assign the instance
+         // to a global variable.
+ 
++new SignalReplyModule();
+ #if !MESHTASTIC_EXCLUDE_REMOTEHARDWARE
+         new RemoteHardwareModule();
+ #endif
