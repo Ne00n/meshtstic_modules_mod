@@ -37,7 +37,8 @@ ProcessMessage SignalReplyModule::handleReceived(const meshtastic_MeshPacket &cu
     bool isPingOrSeq = (strcasestr_custom(messageRequest, "ping") != nullptr || strcasestr_custom(messageRequest, "seq ") != nullptr);
     bool isValidSender = (currentRequest.from != 0x0 && currentRequest.from != nodeDB->getNodeNum());
     bool isAllowedToSend = airTime->isTxAllowedChannelUtil(true) && airTime->isTxAllowedAirUtil();
-    if (!isPingOrSeq || !isValidSender || !isAllowedToSend) {
+    bool isPrivateMessage = (currentRequest.to == nodeDB->getNodeNum());
+    if (!isPingOrSeq || !isValidSender || !isAllowedToSend || !isPrivateMessage) {
         notifyObservers(&currentRequest);
         return ProcessMessage::CONTINUE;
     }
