@@ -90,7 +90,7 @@ ProcessMessage SignalReplyModule::handleReceived(const meshtastic_MeshPacket &cu
     service->handleToRadio(*reply);
 
     notifyObservers(&currentRequest);
-    return ProcessMessage::CONTINUE;
+    return ProcessMessage::STOP;
 }
 
 meshtastic_MeshPacket *SignalReplyModule::allocReply()
