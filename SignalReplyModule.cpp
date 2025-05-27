@@ -63,6 +63,14 @@ ProcessMessage SignalReplyModule::handleReceived(const meshtastic_MeshPacket &cu
     meshtastic_NodeInfoLite *nodeReceiver = nodeDB->getMeshNode(nodeDB->getNodeNum());
     const char *usernameja = nodeReceiver->has_user ? nodeReceiver->user.short_name : idRecipient;
 
+    // Check if receiver's name contains "ping" or "Ping"
+    bool isPingNode = (strcasestr_custom(usernameja, "ping") != nullptr);
+    if (!isPingNode) {
+        LOG_DEBUG("SignalReplyModule::handleReceived(): Receiver node name does not contain 'ping', skipping reply.");
+        notifyObservers(&currentRequest);
+        return ProcessMessage::CONTINUE;
+    }
+
     LOG_ERROR("SignalReplyModule::handleReceived(): '%s' from %s.", messageRequest, username);
 
     int hopLimit = currentRequest.hop_limit;
