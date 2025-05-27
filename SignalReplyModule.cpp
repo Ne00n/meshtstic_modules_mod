@@ -67,9 +67,11 @@ ProcessMessage SignalReplyModule::handleReceived(const meshtastic_MeshPacket &cu
 
     int hopLimit = currentRequest.hop_limit;
     int hopStart = currentRequest.hop_start;
+    int hopsUsed = hopStart - hopLimit;
+    
     if (hopLimit != hopStart) {
         snprintf(messageReply, sizeof(messageReply), "%s: RSSI/SNR cannot be determined due to indirect connection through %d nodes!", 
-                username, (hopLimit - hopStart));
+                username, abs(hopsUsed));
     } else {
         snprintf(messageReply, sizeof(messageReply), "Request '%s'->'%s' : RSSI %d dBm, SNR %.1f dB (@%s).", 
                 username, usernameja, currentRequest.rx_rssi, currentRequest.rx_snr, usernameja);
