@@ -21,8 +21,8 @@ const char* strcasestr_custom(const char* haystack, const char* needle) {
 }
 
 // Store the last reply time for each sender node
-std::unordered_map<uint32_t, std::chrono::steady_clock::time_point> lastReplyTime;
-const std::chrono::seconds replyCooldown(30); // Define the cooldown period
+//std::unordered_map<uint32_t, std::chrono::steady_clock::time_point> lastReplyTime;
+//const std::chrono::seconds replyCooldown(30); // Define the cooldown period
 
 ProcessMessage SignalReplyModule::handleReceived(const meshtastic_MeshPacket &currentRequest)
 {
@@ -43,14 +43,14 @@ ProcessMessage SignalReplyModule::handleReceived(const meshtastic_MeshPacket &cu
         return ProcessMessage::CONTINUE;
     }
     
-    auto now = std::chrono::steady_clock::now();
-    if (lastReplyTime.find(currentRequest.from) != lastReplyTime.end() && (now - lastReplyTime[currentRequest.from]) < replyCooldown) {
-        LOG_DEBUG("SignalReplyModule::handleReceived(): Cooldown active for sender %d.", currentRequest.from);
-        notifyObservers(&currentRequest);
-        return ProcessMessage::CONTINUE;
-    }
+    //auto now = std::chrono::steady_clock::now();
+    //if (lastReplyTime.find(currentRequest.from) != lastReplyTime.end() && (now - lastReplyTime[currentRequest.from]) < replyCooldown) {
+    //    LOG_DEBUG("SignalReplyModule::handleReceived(): Cooldown active for sender %d.", currentRequest.from);
+    //    notifyObservers(&currentRequest);
+    //    return ProcessMessage::CONTINUE;
+    //}
     
-    lastReplyTime[currentRequest.from] = now;
+    //lastReplyTime[currentRequest.from] = now;
 
     char idSender[10];
     char idRecipient[10];
@@ -75,11 +75,10 @@ ProcessMessage SignalReplyModule::handleReceived(const meshtastic_MeshPacket &cu
 
     int hopLimit = currentRequest.hop_limit;
     int hopStart = currentRequest.hop_start;
-    int hopsUsed = hopStart - hopLimit;
     
     if (hopLimit != hopStart) {
         snprintf(messageReply, sizeof(messageReply), "%s: RSSI/SNR cannot be determined due to indirect connection through %d nodes!", 
-                username, abs(hopsUsed));
+                username, abs(hopStart - hopLimit));
     } else {
         snprintf(messageReply, sizeof(messageReply), "Request '%s'->'%s' : RSSI %d dBm, SNR %.1f dB (@%s).", 
                 username, usernameja, currentRequest.rx_rssi, currentRequest.rx_snr, usernameja);
