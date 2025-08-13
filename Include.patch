@@ -14,7 +14,7 @@ index 3528f57f5..87f68c420 100644
          // Note: if the rest of meshtastic doesn't need to explicitly use your module, you do not need to assign the instance
          // to a global variable.
  
-++new SignalReplyModule();
++new SignalReplyModule();
  #if !MESHTASTIC_EXCLUDE_REMOTEHARDWARE
          new RemoteHardwareModule();
  #endif
