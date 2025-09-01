@@ -1,19 +1,20 @@
 diff --git a/src/modules/Modules.cpp b/src/modules/Modules.cpp
-index 3528f57f5..87f68c420 100644
+index 0d405fa81..37a8fe5ae 100644
 --- a/src/modules/Modules.cpp
 +++ b/src/modules/Modules.cpp
-@@ -4,6 +4,7 @@
- #include "input/ExpressLRSFiveWay.h"
+@@ -5,6 +5,7 @@
  #include "input/InputBroker.h"
+ #include "input/RotaryEncoderImpl.h"
  #include "input/RotaryEncoderInterruptImpl1.h"
 +#include "SignalReplyModule.h"
  #include "input/SerialKeyboardImpl.h"
  #include "input/TrackballInterruptImpl1.h"
  #include "input/UpDownInterruptImpl1.h"
-@@ -155,6 +156,7 @@ void setupModules()
+@@ -155,7 +156,7 @@ void setupModules()
+ #endif
          // Note: if the rest of meshtastic doesn't need to explicitly use your module, you do not need to assign the instance
          // to a global variable.
- 
+-
 +new SignalReplyModule();
  #if !MESHTASTIC_EXCLUDE_REMOTEHARDWARE
          new RemoteHardwareModule();
