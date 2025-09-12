@@ -1,21 +1,20 @@
 diff --git a/src/modules/Modules.cpp b/src/modules/Modules.cpp
-index 0d405fa81..37a8fe5ae 100644
+index d4beb6824..c5467d2e1 100644
 --- a/src/modules/Modules.cpp
 +++ b/src/modules/Modules.cpp
-@@ -5,6 +5,7 @@
- #include "input/InputBroker.h"
- #include "input/RotaryEncoderImpl.h"
- #include "input/RotaryEncoderInterruptImpl1.h"
-+#include "SignalReplyModule.h"
- #include "input/SerialKeyboardImpl.h"
+@@ -11,6 +11,7 @@
+ #if HAS_TRACKBALL
  #include "input/TrackballInterruptImpl1.h"
- #include "input/UpDownInterruptImpl1.h"
-@@ -155,7 +156,7 @@ void setupModules()
  #endif
-         // Note: if the rest of meshtastic doesn't need to explicitly use your module, you do not need to assign the instance
-         // to a global variable.
--
++#include "SignalReplyModule.h"
+ 
+ #if !MESHTASTIC_EXCLUDE_I2C
+ #include "input/cardKbI2cImpl.h"
+@@ -119,6 +120,7 @@ void setupModules()
+             buzzerFeedbackThread = new BuzzerFeedbackThread();
+         }
+ #endif
 +new SignalReplyModule();
- #if !MESHTASTIC_EXCLUDE_REMOTEHARDWARE
-         new RemoteHardwareModule();
+ #if !MESHTASTIC_EXCLUDE_ADMIN
+         adminModule = new AdminModule();
  #endif
