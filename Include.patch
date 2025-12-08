@@ -1,8 +1,8 @@
 diff --git a/src/modules/Modules.cpp b/src/modules/Modules.cpp
-index e477574dd..65396d4e7 100644
+index f918d630f..650f27978 100644
 --- a/src/modules/Modules.cpp
 +++ b/src/modules/Modules.cpp
-@@ -9,6 +9,7 @@
+@@ -9,12 +9,14 @@
  #include "input/UpDownInterruptImpl1.h"
  #include "input/i2cButton.h"
  #include "modules/SystemCommandsModule.h"
@@ -10,11 +10,10 @@ index e477574dd..65396d4e7 100644
  #if HAS_TRACKBALL
  #include "input/TrackballInterruptImpl1.h"
  #endif
-@@ -119,6 +120,7 @@ void setupModules()
-         buzzerFeedbackThread = new BuzzerFeedbackThread();
-     }
- #endif
+ 
+ #include "modules/StatusLEDModule.h"
+ 
 +new SignalReplyModule();
- #if !MESHTASTIC_EXCLUDE_ADMIN
-     adminModule = new AdminModule();
+ #if !MESHTASTIC_EXCLUDE_I2C
+ #include "input/cardKbI2cImpl.h"
  #endif
